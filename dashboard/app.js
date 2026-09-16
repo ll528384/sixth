@@ -1,6 +1,12 @@
-const state = { data: null };
+const state = { data: null, barChart: null, lineChart: null };
 
 const loadData = async () => {
+  if (window.location.protocol === 'file:') {
+    $('#status')
+      .text('双击打开无法加载数据(浏览器安全限制)。请在浏览器地址栏访问 http://127.0.0.1:8765/ ，或双击 dashboard 目录下的"启动看板.bat"。')
+      .show();
+    return;
+  }
   $('#status').text('加载中...').show();
   try {
     const response = await fetch('data.json');
@@ -55,10 +61,14 @@ const renderBarChart = (data) => {
       data: s.counts
     }))
   });
+  state.barChart = chart;
 };
 
 const renderLineChart = (data) => {
-  new Chart(document.querySelector('#line-chart'), {
+  if (state.lineChart) {
+    state.lineChart.destroy(); // 防重复初始化
+  }
+  state.lineChart = new Chart(document.querySelector('#line-chart'), {
     type: 'line',
     data: {
       labels: data.months,
@@ -71,9 +81,19 @@ const renderLineChart = (data) => {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false
+      maintainAspectRatio: false,
+      plugins: {
+        title: { display: true, text: '借阅趋势（单位：册）' }
+      }
     }
   });
 };
+
+// ECharts 不会自动跟随窗口尺寸,需要手动 resize;Chart.js 由 responsive:true 自动处理
+// 注意:全页只保留这一个 resize 监听,图表实例统一从 state 里取
+window.addEventListener('resize', () => {
+  if (state.barChart) state.barChart.resize();
+  if (state.lineChart) state.lineChart.resize();
+});
 
 loadData();

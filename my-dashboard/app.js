@@ -64,13 +64,13 @@ const renderBarChart = (data) => {
   state.barChart = chart;
 };
 
+
 // ECharts 不会自动跟随窗口尺寸,需要手动 resize;Chart.js 由 responsive:true 自动处理
 // 注意:全页只保留这一个 resize 监听,图表实例统一从 state 里取
 window.addEventListener('resize', () => {
   if (state.barChart) state.barChart.resize();
   if (state.lineChart) state.lineChart.resize();
 });
-
 let lineChart = null;
 
 const renderLineChart = (data) => {
